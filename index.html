@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#111827" />
+  <meta name="description" content="MoneyOS — จัดการการเงินส่วนตัวอย่างเรียบง่าย" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%2310b981'/%3E%3Cpath d='M16 22h32v24H16z' fill='%23fff' opacity='.95'/%3E%3Cpath d='M22 32h20M28 27v10' stroke='%2310b981' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="icon.svg" />
+  <title>MoneyOS — การเงินของคุณ</title>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand"><span class="brand-mark">₿</span><span>MoneyOS</span></div>
+      <nav class="nav-list" aria-label="เมนูหลัก">
+        <button class="nav-item active" data-view="dashboard"><span>⌂</span>ภาพรวม</button>
+        <button class="nav-item" data-view="history"><span>◷</span>ประวัติรายเดือน</button>
+        <button class="nav-item" data-view="budget"><span>◎</span>งบประมาณ</button>
+        <button class="nav-item" data-view="goals"><span>⌁</span>เป้าหมายเงินเก็บ</button>
+        <button class="nav-item" data-view="portfolio"><span>↗</span>พอร์ตลงทุน</button>
+        <button class="nav-item" data-view="analytics"><span>◔</span>วิเคราะห์</button>
+      </nav>
+      <div class="sidebar-foot"><button id="themeToggle" class="icon-btn" aria-label="สลับโหมดสี">☾</button><span>ข้อมูลอยู่ในเครื่องนี้</span></div>
+    </aside>
+    <main class="main-content">
+      <header class="topbar">
+        <div><p class="eyebrow" id="viewHint">ภาพรวมการเงินของคุณ</p><h1 id="pageTitle">สวัสดี 👋</h1></div>
+        <div class="header-controls"><button class="icon-btn mobile-theme" id="themeToggleMobile" aria-label="สลับโหมดสี">☾</button><button class="month-picker" id="monthPicker" aria-label="เลือกเดือน"><span id="monthLabel"></span><span>⌄</span></button></div>
+      </header>
+      <nav class="mobile-secondary-nav" aria-label="เงินเก็บและการลงทุน"><button data-view="goals">🎯 เป้าหมายเงินเก็บ</button><button data-view="portfolio">📈 พอร์ตลงทุน</button></nav>
+      <section id="viewRoot" aria-live="polite"></section>
+      <section class="data-tools" aria-label="ย้ายและสำรองข้อมูล">
+        <div><strong>ข้อมูลของคุณ</strong><p>สำรองข้อมูลไว้ก่อนย้ายเว็บหรือเปลี่ยนเครื่อง</p></div>
+        <div class="data-actions"><button class="utility-btn" id="exportData">↓ สำรองข้อมูล</button><button class="utility-btn" id="importData">↑ นำเข้าข้อมูล</button><button class="utility-btn" id="reviewDemo" hidden>ตรวจรายการตัวอย่าง</button><button class="utility-btn danger-btn" id="clearMonthData">ล้างข้อมูลเดือนที่เลือก</button><button class="utility-btn danger-btn" id="clearAllData">ล้างข้อมูลทั้งหมด</button></div>
+        <input id="backupFile" type="file" accept="application/json,.json" hidden />
+      </section>
+    </main>
+  </div>
+
+  <nav class="bottom-nav" aria-label="เมนูมือถือ">
+    <button class="bottom-item active" data-view="dashboard">⌂<span>ภาพรวม</span></button>
+    <button class="bottom-item" data-view="history">◷<span>ประวัติ</span></button>
+    <button class="add-fab" id="quickAdd" aria-label="เพิ่มรายการ">+</button>
+    <button class="bottom-item" data-view="budget">◎<span>งบ</span></button>
+    <button class="bottom-item" data-view="analytics">◔<span>วิเคราะห์</span></button>
+  </nav>
+  <button class="desktop-add" id="desktopAdd">+ <span>เพิ่มรายการ</span></button>
+
+  <dialog id="transactionDialog" class="dialog"><form id="transactionForm" novalidate>
+    <div class="dialog-head"><div><p class="eyebrow">บันทึกในไม่กี่วินาที</p><h2>เพิ่มรายการ</h2></div><button type="button" class="icon-btn close-dialog" aria-label="ปิด">×</button></div>
+    <div class="type-toggle"><button type="button" class="type-choice selected" data-type="expense">รายจ่าย</button><button type="button" class="type-choice" data-type="income">รายรับ</button></div>
+    <label>จำนวนเงิน<input name="amount" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="0.00" required autofocus /><span class="currency">บาท</span></label>
+    <label>หมวดหมู่<select name="category" id="categorySelect" required></select></label>
+    <label>วันที่<input name="date" id="transactionDate" type="date" required /></label>
+    <label>รายละเอียด <span class="optional">(ไม่บังคับ)</span><input name="note" maxlength="80" placeholder="เช่น อาหารกลางวัน" /></label>
+    <label>บัญชีที่ใช้<select name="account"><option>เงินสด</option><option>บัญชีหลัก</option><option>บัตรเครดิต</option><option>กระเป๋าเงินดิจิทัล</option></select></label>
+    <p class="form-error" id="transactionError" role="alert"></p><button type="button" class="text-btn" id="deleteTransaction" hidden>ลบรายการนี้</button>
+    <button class="primary-btn" type="submit">บันทึกรายการ</button>
+  </form></dialog>
+
+  <dialog id="monthDialog" class="dialog small-dialog"><form id="monthForm" method="dialog"><div class="dialog-head"><div><p class="eyebrow">เรียกดูข้อมูลย้อนหลัง</p><h2>เลือกเดือน</h2></div><button type="button" class="icon-btn close-dialog">×</button></div><input id="monthInput" type="month" required /><button class="primary-btn" type="submit">ดูเดือนนี้</button></form></dialog>
+  <dialog id="simpleDialog" class="dialog small-dialog"><form id="simpleForm" method="dialog"><div class="dialog-head"><div><p class="eyebrow" id="simpleEyebrow">จัดการข้อมูล</p><h2 id="simpleTitle">เพิ่มรายการ</h2></div><button type="button" class="icon-btn close-dialog">×</button></div><div id="simpleFields"></div><p class="form-error" id="simpleError" role="alert"></p><button type="button" class="text-btn danger-btn" id="deleteSimple" hidden>ลบรายการนี้</button><button class="primary-btn" type="submit">บันทึก</button></form></dialog>
+  <dialog id="transferDialog" class="dialog"><form id="transferForm"><div class="dialog-head"><div><p class="eyebrow">จัดการข้อมูลที่บันทึกไว้</p><h2 id="transferTitle">นำเข้าข้อมูล</h2></div><button type="button" class="icon-btn close-dialog" aria-label="ปิด">×</button></div><div id="transferBody"></div><p class="form-error" id="transferError" role="alert"></p><button class="primary-btn" id="transferSubmit" type="submit">ยืนยัน</button></form></dialog>
+  <div id="toast" class="toast" role="status"></div>
+  <script src="app.js"></script>
+</body>
+</html>
